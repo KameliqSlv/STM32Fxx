@@ -1,0 +1,43 @@
+#include <stdint.h>
+
+#define BASEADDR_RCC 					0x40023800U
+#define RCC_AHB1RSTR_OFFSET 			0x30U											//RCC AHB1 peripheral clock register offset
+#define RCC_AHB1RSTR					(BASEADDR_RCC + RCC_AHB1RSTR_OFFSET)
+
+#define BASEADDR_GPIOA		 			0x40020000U
+
+#define BASEADDR_GPIOA_PU_PD_OFFSET		0x0CU
+#define BASEADDT_GPIOA_PU_PD			(BASEADDR_GPIOA + BASEADDR_GPIOA_PU_PD_OFFSET)
+/*
+ * 	Input pull-down
+ *
+ */
+
+
+int main(void)
+{
+	/*
+	 *	1. 	 Enable clock for GPIOA peripheral using RCC_AHB1ENR
+	 */
+	uint32_t *pRCC_GPIOA = (uint32_t*) RCC_AHB1RSTR;
+	*pRCC_GPIOA |= (1 << 0);							//bit 0: GPIOA enable
+
+
+	/*
+	 * 	2.	Set GPIO as input
+	 */
+	uint32_t *pGPIOA_IN = (uint32_t*) BASEADDR_GPIOA;
+	*pGPIOA_IN &= ~(0x3 << 0);							// clear bits
+
+	/*
+	 * 	3.	enable pull-down
+	 */
+	uint32_t *pPuPd = (uint32_t*) BASEADDT_GPIOA_PU_PD;
+	*pPuPd &= ~(0x3 << 0);								// clear bits
+	*pPuPd |= (1 << 1);									// set bit
+
+
+
+    /* Loop forever */
+	for(;;);
+}
