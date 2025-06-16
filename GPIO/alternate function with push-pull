@@ -1,0 +1,79 @@
+#include <stdint.h>
+
+#define BASEADDR_RCC 					0x40023800U
+#define RCC_AHB1ENR_OFFSET				0x30U											//RCC AHB1 peripheral clock register offset
+#define RCC_AHB1ENR_ADDR				(BASEADDR_RCC + RCC_AHB1ENR_OFFSET)
+
+#define BASEADDR_GPIOA		 			0x40020000U
+
+#define BASEADDR_APB2					0x40011000U
+#define RCC_APB2ENR_USART1				(BASEADDR_APB2 + 0x44U)
+
+#define GPIOx_MODER_ADDR				(BASEADDR_GPIOA + 0x00U)
+
+#define GPIOx_OTYPER_OFFSET				0x04U
+#define GPIOx_OTYPER_ADDR				(BASEADDR_GPIOA + GPIOx_OTYPER_OFFSET)
+
+#define GPIOx_PUPDR_ADDR				(BASEADDR_GPIOA + 0x0CU)
+
+#define GPIOx_AFRH_ADDR					(BASEADDR_GPIOA + 0x24U)
+
+
+
+
+/*
+ * 	Alternate function with push-pull
+ *
+ */
+
+
+int main(void)
+{
+	/*
+	 *	1. Enable clock for GPIOA
+	 */
+	uint32_t *pPortA = (uint32_t*) RCC_AHB1ENR_ADDR;
+	*pPortA |= (1 << 0);
+
+	/*
+	 * 	2. Enable USART1 clock
+	 */
+	uint32_t *pUsart = (uint32_t*) RCC_APB2ENR_USART1;
+	*pUsart |= (1 << 4);
+
+	/*
+	 * 	3. Set GPIOA (PA8) as alternate function
+	 */
+	uint32_t *pModeR = (uint32_t*) GPIOx_MODER_ADDR;
+	*pModeR &= ~(0x3 << 16);
+	*pModeR |= (0x2 << 16);
+
+
+	/*
+	 * 	3. SET PA8 as push-pull
+	 */
+	uint32_t* pPushPull = (uint32_t*) GPIOx_OTYPER_ADDR;
+	*pPushPull &= ~(1 << 8);
+
+
+	/*
+	 * 	4. Enable pull-up resistor
+	 */
+	uint32_t *pPuPd = (uint32_t*) GPIOx_PUPDR_ADDR;
+	*pPuPd &= ~(0x03 << 16);
+	*pPuPd |= (0x1 << 16);
+
+	/*
+	 * 	5. Enable AF7 on PA8
+	 */
+	uint32_t *pAfrh = (uint32_t*) GPIOx_AFRH_ADDR;
+	*pAfrh &= ~(0xf << 0);
+	*pAfrh |= (0x7 << 0);
+
+
+
+
+    /* Loop forever */
+	for(;;);
+}
+
