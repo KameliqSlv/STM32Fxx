@@ -1,0 +1,78 @@
+#include <stdint.h>
+
+#define BASEADDR_RCC 					0x40023800U
+#define RCC_AHB1ENR_OFFSET				0x30U											//RCC AHB1 peripheral clock register offset
+#define RCC_AHB1ENR_ADDR				(BASEADDR_RCC + RCC_AHB1ENR_OFFSET)
+
+#define RCC_APB2ENR_OFFSET				0x44U
+#define RCC_APB2ENR_ADDR				(BASEADDR_RCC + RCC_APB2ENR_OFFSET)
+
+#define BASEADDR_GPIOA		 			0x40020000U
+#define BASEADDR_MODER_OFFSET			0x00U
+#define BASEADDR_MODER_ADDR				(BASEADDR_GPIOA + BASEADDR_MODER_OFFSET)
+/*
+ * 	ADC register
+ */
+#define ADC_BASEADDR					0x40012000U
+#define ADC_CR1_OFFSET					0x04U
+#define ADC_CR1_ADDR					(ADC_BASEADDR + ADC_CR1_OFFSET)
+
+#define ADC_CR2_ADDR					(ADC_BASEADDR + 0x08U)
+
+#define ADC_SQR3_ADDR					(ADC_BASEADDR + 0x34U)
+
+/*
+ * 	Analog
+ *
+ */
+
+
+int main(void)
+{
+	/*
+	 *	1. Turn on clock for GPIOA
+	 */
+	uint32_t *pPortA = (uint32_t*) RCC_AHB1ENR_ADDR;
+	*pPortA |= (1 << 0);
+
+
+	/*
+	 * 	2. Turn on clock APB1 -> ADC1
+	 */
+	uint32_t* pADCreg = (uint32_t*) RCC_APB2ENR_ADDR;
+	*pADCreg |= (1 << 8);
+
+
+	/*
+	 * 	3. Set PA0 as analog
+	 */
+	uint32_t *pModeReg = (uint32_t*) BASEADDR_GPIOA;
+	*pModeReg &= ~(0x3 << 0);
+	*pModeReg |= (0x3 << 0);
+
+
+	/*
+	 * 	4. modify ADC -> disable scan mode
+	 */
+	uint32_t *pAdcCr1 = (uint32_t*) ADC_CR1_ADDR;
+	*pAdcCr1 &= ~(1 << 8);
+
+	/*
+	 * 	5. Enable ADC
+	 */
+	uint32_t *pAdcCr2 = (uint32_t*) ADC_CR2_ADDR;
+	*pAdcCr2 |= (1 << 0);		// ADON 	-> The ADC is powered on by setting the ADON bit
+	*pAdcCr2 |= (1 << 1);		// CONT		->  Continuous conversion mode
+	*pAdcCr2 |= (1 << 30);		// SWSTART 	->  Conversion starts when either the SWSTART or the JSWSTART bit is set.
+
+	/*
+	 * 	6. Select channel PA0
+	 */
+	uint32_t *pAdcSqr = (uint32_t*) ADC_SQR3_ADDR;
+	*pAdcSqr = 0;				// channel 0
+
+
+    /* Loop forever */
+	for(;;);
+}
+
