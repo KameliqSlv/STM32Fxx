@@ -1,0 +1,61 @@
+#include <stdint.h>
+
+#define BASEADDR_RCC 					0x40023800U
+#define RCC_AHB1ENR_OFFSET				0x30U											//RCC AHB1 peripheral clock register offset
+#define RCC_AHB1ENR_ADDR				(BASEADDR_RCC + RCC_AHB1ENR_OFFSET)
+
+#define BASEADDR_GPIOA		 			0x40020000U
+
+#define GPIOx_MODER_ADDR				(BASEADDR_GPIOA + 0x00U)
+
+#define GPIOx_OTYPER_OFFSET				0x04U
+#define GPIOx_OTYPER_ADDR				(BASEADDR_GPIOA + GPIOx_OTYPER_OFFSET)
+
+#define GPIOx_PUPDR_ADDR				(BASEADDR_GPIOA + 0x0CU)
+
+
+
+
+/*
+ * 	output push-pull with pull-up resistor
+ *
+ */
+
+
+int main(void)
+{
+	/*
+	 *	1. Enable clock for GPIOA
+	 */
+	uint32_t *pPortA = (uint32_t*) RCC_AHB1ENR_ADDR;
+	*pPortA |= (1 << 0);
+
+	/*
+	 * 	2. Set GPIOA (PA0) as output
+	 */
+	uint32_t *pModeR = (uint32_t*) GPIOx_MODER_ADDR;
+	*pModeR &= ~(0x3 << 0);
+	*pModeR |= (0x01 << 0);
+
+
+	/*
+	 * 	3. SET PA0 as push-pull
+	 */
+	uint32_t* pPushPull = (uint32_t*) GPIOx_OTYPER_ADDR;
+	*pPushPull &= ~(0xf << 0);
+
+
+	/*
+	 * 	4. Enable pull-up resistor
+	 */
+	uint32_t *pPuPd = (uint32_t*) GPIOx_PUPDR_ADDR;
+	*pPuPd &= ~(0x03 << 0);
+	*pPuPd |= (0x1 << 0);
+
+
+
+
+    /* Loop forever */
+	for(;;);
+}
+
